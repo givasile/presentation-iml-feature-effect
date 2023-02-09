@@ -1,0 +1,350 @@
+\documentclass{beamer}
+% \usepackage{tikz}
+\usepackage{amsmath, bm, amssymb}
+\usepackage{graphicx}
+\graphicspath{{logos/}{figures/}}
+\usepackage{xcolor}
+
+% \usepackage{algorithm}
+% \usepackage[noend]{algpseudocode}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    }
+
+\usepackage[backend=biber, citestyle=authoryear, bibstyle=alphabetic]{biblatex}
+% \addbibresource{bibliography.bib}
+
+
+% Frequently used vectors
+\newcommand{\Vu}{\mathbf{u}}
+\newcommand{\Vh}{\mathbf{h}}
+\newcommand{\Vv}{\mathbf{v}}
+\newcommand{\Vw}{\mathbf{w}}
+\newcommand{\Vb}{\mathbf{b}}
+\newcommand{\Vx}{\mathbf{x}}
+\newcommand{\Vy}{\mathbf{y}}
+\newcommand{\Vz}{\mathbf{z}}
+\newcommand{\Vf}{\mathbf{f}}
+\newcommand{\VC}{\mathbf{C}}
+\newcommand{\VD}{\mathbf{D}}
+\newcommand{\VX}{\mathbf{X}}
+\newcommand{\VS}{\mathbf{S}}
+\newcommand{\VW}{\mathbf{W}}
+\newcommand{\VV}{\mathbf{V}}
+\newcommand{\VU}{\mathbf{U}}
+\newcommand{\Vth}{\bm{\theta}}
+\newcommand{\pmodel}{p_{\text{model}}}
+\newcommand{\pdata}{\hat{p}_{\text{data}}}
+\newcommand{\thetab}{\boldsymbol{\theta}}
+\newcommand{\xb}{\boldsymbol{x}}
+
+\newcommand{\obf}[1]{{\color{orange} \textbf{#1}}}
+\newcommand{\orange}[1]{{\color{orange} #1}}
+\newcommand{\rbf}[1]{{\color{red} \textbf{#1}}}
+\newcommand{\red}[1]{{\color{red} #1}}
+
+
+% \usepackage{tikzsymbols}
+\usetheme{Frankfurt}
+\usecolortheme{seahorse}
+% \newcommand{\thetab}{\boldsymbol{\theta}}
+% \newcommand{\xb}{\boldsymbol{x}}
+% \DeclareMathOperator*{\argmin}{arg\,min}
+% \DeclareMathOperator*{\argmax}{arg\,max}
+
+\title[IML]{Interpretable Machine Learning}
+\subtitle{Global explainability techniques}
+\author[Gkolemis, Vasilis] % (optional)
+{Vasilis Gkolemis\inst{1}\inst{2}}
+
+\institute[VASILIS]
+{
+  \inst{1}%
+  ATHENA Research and Innovation Center \and
+  \inst{2}%
+  Harokopio University of Athens
+}
+
+\date{February 2022}
+
+
+% Use a simple TikZ graphic to show where the logo is positioned
+% \logo{\begin{tikzpicture}
+% \filldraw[color=red!50, fill=red!25, very thick](0,0) circle (0.5);
+% \node[draw,color=white] at (0,0) {LOGO HERE};
+% \end{tikzpicture}}
+
+%End of title page configuration block
+%------------------------------------------------------------
+%The next block of commands puts the table of contents at the
+%beginning of each section and highlights the current section:
+
+% \AtBeginSection[]
+% {
+%   \begin{frame}
+%     \frametitle{Program}
+%     \tableofcontents[currentsection]
+%   \end{frame}
+% }
+
+% ------------------------------------------------------------
+\begin{document}
+\frame{\titlepage}
+%---------------------------------------------------------
+
+\section{Introduction}
+
+\begin{frame}
+  \frametitle{Motivation}
+
+  \begin{itemize}
+  \item<1-> The credit assessment system leads to the rejection of an
+    application for a loan - the client suspects racial bias\footnote{\url{https://www.technologyreview.com/2021/06/17/1026519/racial-bias-noisy-data-credit-scores-mortgage-loans-fairness-machine-learning/}}
+  \item<2-> A model that assesses the risk of future criminal offenses (and
+    used for decisions on parole sentences) is biased against black
+    prisoners\footnote{\url{https://www.propublica.org/article/machine-bias-risk-assessments-in-criminal-sentencing}}
+  \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Interpretability}
+  \begin{itemize}
+    \item Questions:
+    \begin{itemize}
+    \item Why did a model make a specific decision?
+    \item Can we summarize the model's behavior?
+    \end{itemize}
+  \item Answer:
+    \begin{itemize}
+    \item Interpretable Machine Learning (IML)
+    \item ``Extraction of relevant knowledge from a machine-learning model
+    concerning relationships either contained in data or learned by the
+    model''\footnote{Murdoch, W. J., Singh, C., Kumbier, K., Abbasi-Asl, R. and
+    Yu, B. ``Definitions, methods, and applications in interpretable machine
+    learning.'' Proceedings of the National Academy of Sciences, 116(44),
+    22071-22080. (2019)}
+  \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Example}
+  \begin{onlyenv}<1>
+    Consider the following mapping $x \rightarrow y$
+    \begin{center}
+      \scalebox{0.5}{
+        \input{figures/ovf_1_reality.pgf}
+      }
+    \end{center}
+  \end{onlyenv}
+  \begin{onlyenv}<2>
+    Process unknown \(\rightarrow\) we only have samples
+    \begin{center}
+      \scalebox{0.5}{
+        \input{figures/ovf_2_sampling.pgf}
+      }
+    \end{center}
+  \end{onlyenv}
+  \begin{onlyenv}<3>
+    Our goal is to model the process using the available samples (regression)
+    \vspace{1cm}\\
+  \end{onlyenv}
+  \begin{onlyenv}<4>
+    Linear model \(\rightarrow\) Underfiting!
+    \begin{equation*}
+      y = w_1\cdot x + w_0
+    \end{equation*}
+    \begin{center}
+      \scalebox{0.5}{
+        \input{figures/ovf_3_linear.pgf}
+      }
+    \end{center}
+  \end{onlyenv}
+  \begin{onlyenv}<5>
+    2$^{nd}$ degree polynomial \(\rightarrow\) Decent Fit!
+    \begin{equation*}
+      y = w_2\cdot x^2 + w_1\cdot x + w_0
+    \end{equation*}
+    \begin{center}
+      \scalebox{0.5}{
+        \input{figures/ovf_4_quadratic.pgf}
+      }
+    \end{center}
+  \end{onlyenv}
+  \begin{onlyenv}<6>
+    3$^{rd}$ degree polynomial \(\rightarrow\) Good Fit!
+    \begin{equation*}
+      y = w_3\cdot x^3 + w_2\cdot x^2 + w_1\cdot x + w_0
+    \end{equation*}
+    \begin{center}
+      \scalebox{0.5}{
+        \input{figures/ovf_5_3d.pgf}
+      }
+    \end{center}
+  \end{onlyenv}
+  \begin{onlyenv}<7>
+    9$^{th}$ degree polynomial \(\rightarrow\) Overfitting!
+    \begin{equation*}
+      y = \sum_{i=0}^{9}w_i\cdot x^{i}
+    \end{equation*}
+    \begin{center}
+      \scalebox{0.5}{
+        \input{figures/ovf_6_9d.pgf}
+      }
+    \end{center}
+  \end{onlyenv}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Problem diagnosis}
+
+  \begin{itemize}
+  \item Model behavior is \obf{explained} by the shape of the function
+  \item Overfitting, Underfitting are easily diagnosed
+  \item If the input has multiple dimensions $D$?
+    \begin{itemize}
+    \item We often have tens or hundreds of features
+    \item Images and signals: Several thousands of input dimensions
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+  \frametitle{Bike Sharing Problem}
+
+  \begin{itemize}
+  \item Predict Bike rentals per hour in California
+  \item We have 11 features
+    \begin{itemize}
+    \item e.g., month, hour, temperature, humidity, windspeed
+    \end{itemize}
+  \item We fit a Neural Network \(y = \hat{f}(\xb)\)
+  \item How to make a plot like before?
+    \begin{itemize}
+    \item Feature Effect methods
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+\section{Feature Effect Methods}
+
+\begin{frame}
+  \frametitle{Feature effect methods}
+  \begin{itemize}
+  \item High-dimensional input space \(\xb \in \mathbb{R}^D\)
+    \begin{itemize}
+    \item \(x_s \rightarrow \) feature of interest
+    \item \(\Vx_c \rightarrow\) other features
+    \end{itemize}
+  \item How do we isolate the effect of \(x_s\)?
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Partial Dependence Plots (PDP)}
+  \begin{onlyenv}<1>
+    \begin{itemize}
+    \item Proposed by J. Friedman on 2001\footnote{J. Friedman. ``Greedy
+    function approximation: A gradient boosting machine.'' Annals of statistics
+    (2001): 1189-1232} and is the marginal \obf{effect} of a feature to the
+      model output:
+      \begin{equation*}
+        f_s(x_s) = E_{X_c}\left[\hat{f}(x_s, X_c)\right]
+      \end{equation*}
+    \item Computation:
+      \begin{equation*}
+        \hat{f}_s(x_s) = \frac{1}{n}\sum\limits_{i=1}^{n}\hat{f}(x_s, \Vx_c^{(i)})
+      \end{equation*}
+    \end{itemize}
+  \end{onlyenv}
+  \begin{onlyenv}<2>
+    \obf{Bike sharing Dataset:}
+    \begin{figure}
+      \includegraphics[width=\textwidth]{pdp-bike-1}
+      \caption{\footnotesize C. Molnar, IML book}
+    \end{figure}
+  \end{onlyenv}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Issues with PDPs}
+  \begin{onlyenv}<1>
+    \begin{itemize}
+    \item The marginal distribution ignores correlated features!
+    \item To compute the effect of temperature $=33$ degrees it will (also) use an instance
+        with month = January
+    \end{itemize}
+    \begin{figure}
+      \includegraphics[width=.6\textwidth]{aleplot-motivation1-1}
+      \caption{\footnotesize C. Molnar, IML book}
+    \end{figure}
+  \end{onlyenv}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Accumulated Local Effects (ALE)\footnote{D. Apley and
+    J. Zhu. ``Visualizing the effects of predictor variables in black box
+    supervised learning models.'' Journal of the Royal Statistical Society:
+    Series B (Statistical Methodology) 82.4 (2020): 1059-1086.}}
+
+  \begin{itemize}
+  \item Resolves problems that result from the feature correlation by computing
+    differences over a (small) window
+  \item Definition: \(f(x_s) = \int_{x_{min}}^{x_s}\mathbb{E}_{\Vx_c|z}[ \frac{\partial f}{\partial x_s}(z, \Vx_c)] \partial z\)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{ALE approximation}
+  Approximation: \(f(x_s) = \sum\limits_{k=1}^{k_x}
+  \underbrace{\frac{1}{|\mathcal{S}_k|} \sum_{i:\Vx^i \in \mathcal{S}_k}
+    \underbrace{[f(z_k, \Vx^i_c) - f(z_{k-1}, \Vx^i_c)]}_{\text{point
+        effect}}}_{\text{bin effect}} \)
+
+  \begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.65\textwidth]{./figures/ale_bins_iml.png}
+    \caption{\footnotesize C. Molnar, IML book}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{ALE plots - examples}
+  \begin{figure}
+    \includegraphics[width=1\textwidth]{ale-bike-1}
+    \caption{\footnotesize C. Molnar, IML book}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Our work}
+
+  \begin{itemize}
+  \item Differential Accumumulated Local Effects (DALE)
+    \begin{itemize}
+    \item Asian Conference in Machine Learning (ACML 2022)
+    \item work done with my supervisors:
+      Christos Diou, Theodore Dalamagas
+    \end{itemize}
+  \item More efficient and accurate extension of ALE
+  \item Works only with differential models (like Neural Networks)
+  \item \href{https://arxiv.org/abs/2210.04542}{https://arxiv.org/abs/2210.04542}
+  \end{itemize}
+\end{frame}
+
+
+
+\end{document}
